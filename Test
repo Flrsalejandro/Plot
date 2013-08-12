@@ -1,0 +1,15 @@
+import web
+        
+urls = ('/(.*)', 'hello')
+
+app = web.application(urls, globals())
+
+class hello:
+    def __init__(self):
+  self.render = web.template.render('templates/')        
+    
+    def GET(self, name=None):
+        return self.render.index('Plot')
+
+if __name__ == "__main__":
+    app.run()

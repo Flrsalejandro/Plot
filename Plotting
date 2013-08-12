@@ -1,0 +1,66 @@
+# IMPORT MODULES
+import sys, serial
+from pylab import *
+from scipy import stats
+import pylab
+import numpy as np
+import matplotlib.pyplot as plt
+import time
+ser = serial.Serial('/dev/ttyACM0', 9600)
+z = 0
+y = array([])
+plt.ion()
+plt.show()
+while z == 0:
+	w = ser.readline()	
+	if w.strip() != '9999': # CHECKS IF VALUE FROM ARDUINO IS NOT '9999'
+		w = w.strip() # STRIPS '\r\n' 
+		w = int(w)
+		y = append(y,w) # ADDS NEW DATA TO ARRAY
+		s = y.size	
+		x = np.array(range(0, s*10, 10)) # SCALES THE DATA IN THIS CASE EACH DATA POINT APPEARS IN INTERVALS OF 10 MIN
+		plt.xlabel('Time (Min.)')
+		plt.ylabel('Current (A)')
+		plot(x, y, 'bo')
+		plt.draw() # UPDATES PLOT IN REAL TIME
+	elif w.strip() == '9999':
+		# CALCULATING LINE OF BEST FIT	
+		slope, intercept, r_value, p_value, slope_std_error = stats.linregress(x,y)		
+		predict_y = intercept + slope * x
+		pred_error = y - predict_y
+		degrees_of_freedom = len(x) -2
+		residual_std_error = np.sqrt(np.sum(pred_error**2)) / degrees_of_freedom
+		plt.xlabel('Time (Min.)')
+		plt.ylabel('Current (A)')
+		plot(x, y, 'bo')
+		plot(x, predict_y, 'k-')
+		savefig('PLOT.jpeg')
+		plt.draw()
+		np.savetxt('DATA', y, fmt = "%2f", newline='\n')
+		f = open ('LINREG', 'w')
+		# CONVERT VALUES INTO STRINGS
+		slope = ("%2f" % slope)
+		intercept = ("%2f" % intercept)
+		slp = str(slope)
+		intcpt = str(intercept)
+		# WRITES ALL DATA TO TXT FOR FUTURE REFERENCE
+		f.write('LINREG\n')
+		f.write('\n')
+		f.write('SLOPE\n')
+		f.write(slp)
+		f.write('\n')
+		f.write('\n')
+		f.write('INTERCEPT\n')
+		f.write(intcpt)
+		f.write('\n')
+		f.write('\n')
+		f.write('EQUATION\n')
+		f.write('CURRENT = ')
+		f.write(slp)
+		f.write(' TIME + ')
+		f.write(intcpt)
+		time.sleep(30)
+		# lets take a break now		
+		break
+		
+	
